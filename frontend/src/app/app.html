@@ -1,1 +1,35 @@
-<p-button label="Check" />
+<p-breadcrumb [model]="pathSegments"/>
+
+<p-table [value]="items" showGridlines [resizableColumns]="true" [tableStyle]="{ 'min-width': '25rem' }">
+  <ng-template #header>
+    <tr>
+      <th pSortableColumn="name" pResizableColumn>
+        <div class="flex items-center gap-2">
+          Name
+          <p-sortIcon field="name"/>
+        </div>
+      </th>
+      <th pSortableColumn="new_name" pResizableColumn>
+        <div class="flex items-center gap-2">
+          New Name
+          <p-sortIcon field="new_name"/>
+        </div>
+      </th>
+      <th pSortableColumn="size" pResizableColumn>
+        <div class="flex items-center gap-2">
+          Size
+          <p-sortIcon field="size"/>
+        </div>
+      </th>
+      <th pSortableColumn="modified" pResizableColumn>Modified</th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-item>
+    <tr>
+      <td>{{ item.name }}</td>
+      <td>{{ item.newName }}</td>
+      <td>{{ item.size | unit }}</td>
+      <td>{{ item.modified | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+    </tr>
+  </ng-template>
+</p-table>
