@@ -43,6 +43,22 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class WorkingDirectoryEvent {
+	    segments: string[];
+	    path: string;
+	    eventType: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkingDirectoryEvent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.segments = source["segments"];
+	        this.path = source["path"];
+	        this.eventType = source["eventType"];
+	    }
+	}
 
 }
 

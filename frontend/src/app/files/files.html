@@ -1,0 +1,74 @@
+<div style="user-select: none"
+     (mousedown)="toggleSelection($event)"
+     (mouseup)="toggleSelection($event)"
+     (mousemove)="onMouseMove($event)">
+  <p-table [value]="items"
+           [resizableColumns]="true"
+           selectionMode="multiple"
+           [metaKeySelection]="true"
+           dataKey="name"
+           [(selection)]="selectedItems"
+           [scrollable]="true"
+           scrollHeight="89vh"
+           [tableStyle]="{ 'min-width': '25rem'}">
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="name" pResizableColumn>
+          <div class="flex items-center gap-2">
+            Name
+            <p-sortIcon field="name"/>
+          </div>
+        </th>
+        <th pSortableColumn="newName" pResizableColumn>
+          <div class="flex items-center gap-2">
+            New Name
+            <p-sortIcon field="newName"/>
+          </div>
+        </th>
+        <th pSortableColumn="size" pResizableColumn>
+          <div class="flex items-center gap-2">
+            Size
+            <p-sortIcon field="size"/>
+          </div>
+        </th>
+        <th pSortableColumn="modified" pResizableColumn>
+          <div class="flex items-center gap-2">
+            Modified
+            <p-sortIcon field="modified"/>
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-item let-rowIndex=rowIndex>
+      <tr [pSelectableRow]="item"
+          [pSelectableRowIndex]="rowIndex"
+          (mouseenter)="onMouseEnter($event, item)"
+          (click.double)="openDirectory(item)"
+          #rowRef>
+        <td>
+          @if (item.isDir) {
+            <i class="pi pi-folder" style="color: cornflowerblue"></i>
+          } @else {
+            <i class="pi pi-file-o"></i>
+          }
+          {{ item.name }}
+        </td>
+        <td>{{ item.newName }}</td>
+        <td>{{ item.size | unit }}</td>
+        <td>{{ item.modified | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+@if (selectionBox) {
+  <div
+    class="selection-box"
+    [ngStyle]="{
+    left: selectionBox.left + 'px',
+    top: selectionBox.top + 'px',
+    width: selectionBox.width + 'px',
+    height: selectionBox.height + 'px'
+  }"
+  ></div>
+}

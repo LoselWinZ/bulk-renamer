@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bulk-renamer/internal/utils"
 	"context"
 	"fmt"
 	"os"
@@ -8,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -20,10 +23,13 @@ func NewApp() *App {
 	return &App{}
 }
 
+var pathBackStack *utils.Stack
+
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	pathBackStack = utils.NewStack()
 }
 
 type Item struct {
@@ -36,18 +42,69 @@ type Item struct {
 	Items    []Item    `json:"items"`
 }
 
+type WorkingDirectoryEvent struct {
+	Segments  []string `json:"segments"`
+	Path      string   `json:"path"`
+	EventType string   `json:"eventType"`
+}
+
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
 func (a *App) WorkingDirectory() *string {
-	conf, err := os.UserConfigDir()
+	conf, err := os.UserHomeDir()
 	if err != nil {
 		return nil
 	}
 
+	runtime.EventsEmit(a.ctx, "working_directory", WorkingDirectoryEvent{
+		Segments: strings.Split(conf, string(filepath.Separator)),
+		Path:     conf,
+	})
 	return &conf
+}
+
+func (a *App) UpdateWorkingDirectory(event WorkingDirectoryEvent) {
+	pathWithPrefix := ""
+	var pathSegments []string
+	switch event.EventType {
+	case "UP":
+		pathSegments = event.Segments[:len(event.Segments)-1]
+		if len(pathSegments) < 1 {
+			return
+		}
+		fullPath := filepath.Join(pathSegments...)
+		pathWithPrefix = filepath.Join(string(os.PathSeparator), fullPath)
+	case "BACK":
+		if pathBackStack.Size() < 2 {
+			return
+		}
+		_ = pathBackStack.Pop()
+		newPath := pathBackStack.Pop()
+		pathWithPrefix = filepath.Join(string(os.PathSeparator), newPath)
+		pathSegments = strings.Split(pathWithPrefix, string(filepath.Separator))
+	case "RELOAD":
+		pathSegments = event.Segments
+		pathWithPrefix = event.Path
+	default:
+		if len(event.Segments) == 0 {
+			pathSegments = strings.Split(event.Path, string(filepath.Separator))
+			pathWithPrefix = event.Path
+		} else {
+			pathSegments = event.Segments
+			fullPath := filepath.Join(pathSegments...)
+			pathWithPrefix = filepath.Join(string(os.PathSeparator), fullPath)
+		}
+	}
+	if pathBackStack.Peek() != pathWithPrefix {
+		pathBackStack.Push(pathWithPrefix)
+	}
+	runtime.EventsEmit(a.ctx, "working_directory", WorkingDirectoryEvent{
+		Segments: pathSegments,
+		Path:     pathWithPrefix,
+	})
 }
 
 func (a *App) ListDirectory(directory string) []Item {
@@ -71,11 +128,8 @@ func (a *App) ListDirectory(directory string) []Item {
 	var items []Item
 	for _, f := range files {
 		path := filepath.Join(directory, f.Name())
-		if f.IsDir() {
-			path += string(os.PathSeparator)
-		}
 		size := float64(f.Size())
-		if f.IsDir() {
+		if f.IsDir() || !f.Mode().IsRegular() {
 			size = 0
 		}
 		items = append(items, Item{
@@ -90,4 +144,8 @@ func (a *App) ListDirectory(directory string) []Item {
 	}
 
 	return items
+}
+
+func (a *App) GetBackStack() []string {
+	return pathBackStack.List()
 }

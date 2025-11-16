@@ -1,0 +1,13 @@
+header {
+  display: grid;
+  grid-template-columns: max-content auto;
+
+  .pathActions {
+    display: grid;
+    grid-template-columns: repeat(3, 3rem);
+    justify-items: center;
+    align-items: center;
+    background-color: var(--p-content-background);
+  }
+}
+

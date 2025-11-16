@@ -20,7 +20,7 @@ export class UnitPipe implements PipeTransform {
       return '';
     }
 
-    let unitIndex = Object.keys(Unit)
+    let unitIndex: undefined | number = Object.keys(Unit)
       .map(key => {
         let number = Number(key);
         if (isNaN(number)) return undefined
@@ -39,6 +39,6 @@ export class UnitPipe implements PipeTransform {
   }
 
   private toBytes(unitIndex: number): number {
-    return 1 << (unitIndex * 10);
+    return 1 << (unitIndex * 10); // 2^(unitIndex*10)
   }
 }

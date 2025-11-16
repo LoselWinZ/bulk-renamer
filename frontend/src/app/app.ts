@@ -1,41 +1,25 @@
 import {Component, OnInit} from '@angular/core';
 import {ButtonModule} from 'primeng/button';
-import {Breadcrumb} from 'primeng/breadcrumb';
-import {ListDirectory, WorkingDirectory} from '../../wailsjs/go/main/App';
-import {MenuItem} from 'primeng/api';
-import {main} from '../../wailsjs/go/models';
-import Item = main.Item;
+import {WorkingDirectory} from '../../wailsjs/go/main/App';
 import {TableModule} from 'primeng/table';
-import {DatePipe, DecimalPipe} from '@angular/common';
-import {UnitPipe} from './pipe/unit-pipe';
+import {Path} from './path/path';
+import {Files} from './files/files';
+import {Splitter} from 'primeng/splitter';
 
 @Component({
   selector: 'app-root',
   imports: [
     ButtonModule,
-    Breadcrumb,
     TableModule,
-    DatePipe,
-    UnitPipe,
-    DecimalPipe
+    Path,
+    Files,
+    Splitter,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
-  pathSegments: Array<MenuItem> = [];
-  items: Item[] = []
-
   ngOnInit() {
-    WorkingDirectory().then(result => {
-      console.log(result)
-      this.pathSegments = result.split("/").map((item: string) => ({label: item}))
-
-      ListDirectory(result).then((items: Item[]) => {
-        console.log(items)
-        this.items = items
-      })
-    });
+    WorkingDirectory().then((directory) => {})
   }
-
 }

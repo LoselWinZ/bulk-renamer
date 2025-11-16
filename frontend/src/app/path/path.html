@@ -1,0 +1,23 @@
+<header>
+  <div class="pathActions" >
+    <p-button icon="pi pi-caret-left" aria-label="Back" (onClick)="menuButtonClicked('BACK')" (contextmenu)="openBackStackMenu($event, cm)"/>
+<!--    <p-button icon="pi pi-caret-right" aria-label="Forward" />-->
+    <p-button icon="pi pi-caret-up" aria-label="Forward" (onClick)="menuButtonClicked('UP')"/>
+    <p-button icon="pi pi-refresh" aria-label="Forward" (onClick)="menuButtonClicked('RELOAD')"/>
+<!--    TODO: use popover-->
+    <p-contextMenu #cm [model]="pathBackStack"></p-contextMenu>
+  </div>
+  @if (isInput) {
+    <input type="text"
+           pInputText
+           [(ngModel)]="pathText"
+           variant="filled"
+           (keyup.enter)="confirmNewPath()"
+           style="padding: 15px 0"
+           #pathInput/>
+  } @else {
+    <p-breadcrumb [model]="pathSegments"
+                  (onItemClick)="onDirectoryClick($event)"
+                  (click)="switchToInput()"/>
+  }
+</header>

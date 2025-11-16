@@ -1,35 +1,17 @@
-<p-breadcrumb [model]="pathSegments"/>
+<app-path></app-path>
 
-<p-table [value]="items" showGridlines [resizableColumns]="true" [tableStyle]="{ 'min-width': '25rem' }">
-  <ng-template #header>
-    <tr>
-      <th pSortableColumn="name" pResizableColumn>
-        <div class="flex items-center gap-2">
-          Name
-          <p-sortIcon field="name"/>
-        </div>
-      </th>
-      <th pSortableColumn="new_name" pResizableColumn>
-        <div class="flex items-center gap-2">
-          New Name
-          <p-sortIcon field="new_name"/>
-        </div>
-      </th>
-      <th pSortableColumn="size" pResizableColumn>
-        <div class="flex items-center gap-2">
-          Size
-          <p-sortIcon field="size"/>
-        </div>
-      </th>
-      <th pSortableColumn="modified" pResizableColumn>Modified</th>
-    </tr>
+<p-splitter class="mb-8" [panelSizes]="[50, 50]" [style]="{'height': 'calc(100vh - 60px)'}" layout="vertical">
+  <ng-template #panel>
+    <p-splitter [panelSizes]="[25, 75]" class="mb-8">
+      <ng-template #panel>
+        <div class="flex items-center justify-center h-full">Folder Tree</div>
+      </ng-template>
+      <ng-template #panel>
+        <app-files></app-files>
+      </ng-template>
+    </p-splitter>
   </ng-template>
-  <ng-template #body let-item>
-    <tr>
-      <td>{{ item.name }}</td>
-      <td>{{ item.newName }}</td>
-      <td>{{ item.size | unit }}</td>
-      <td>{{ item.modified | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
-    </tr>
+  <ng-template #panel>
+    <div class="flex items-center justify-center h-full">Operations</div>
   </ng-template>
-</p-table>
+</p-splitter>
