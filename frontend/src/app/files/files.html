@@ -9,8 +9,8 @@
            dataKey="name"
            [(selection)]="selectedItems"
            [scrollable]="true"
-           scrollHeight="89vh"
-           [tableStyle]="{ 'min-width': '25rem'}">
+           [scrollHeight]="(height-8)+'vh'"
+           [tableStyle]="{'width':'100%'}">
     <ng-template #header>
       <tr>
         <th pSortableColumn="name" pResizableColumn>
@@ -54,7 +54,7 @@
           {{ item.name }}
         </td>
         <td>{{ item.newName }}</td>
-        <td>{{ item.size | unit }}</td>
+        <td>{{ item.items != undefined ? item.items.length + ' items' : (item.size | unit) }}</td>
         <td>{{ item.modified | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
       </tr>
     </ng-template>

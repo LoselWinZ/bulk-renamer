@@ -15,7 +15,8 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx   context.Context
+	state *State
 }
 
 // NewApp creates a new App application struct
@@ -30,6 +31,11 @@ var pathBackStack *utils.Stack
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	pathBackStack = utils.NewStack()
+	directory := a.WorkingDirectory()
+	a.state = &State{
+		Path:     directory,
+		Segments: strings.Split(directory, string(filepath.Separator)),
+	}
 }
 
 type Item struct {
@@ -48,22 +54,27 @@ type WorkingDirectoryEvent struct {
 	EventType string   `json:"eventType"`
 }
 
+type State struct {
+	Path     string
+	Segments []string
+}
+
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) WorkingDirectory() *string {
+func (a *App) WorkingDirectory() string {
 	conf, err := os.UserHomeDir()
 	if err != nil {
-		return nil
+		return ""
 	}
 
 	runtime.EventsEmit(a.ctx, "working_directory", WorkingDirectoryEvent{
 		Segments: strings.Split(conf, string(filepath.Separator)),
 		Path:     conf,
 	})
-	return &conf
+	return conf
 }
 
 func (a *App) UpdateWorkingDirectory(event WorkingDirectoryEvent) {
@@ -78,10 +89,9 @@ func (a *App) UpdateWorkingDirectory(event WorkingDirectoryEvent) {
 		fullPath := filepath.Join(pathSegments...)
 		pathWithPrefix = filepath.Join(string(os.PathSeparator), fullPath)
 	case "BACK":
-		if pathBackStack.Size() < 2 {
+		if pathBackStack.Size() < 1 {
 			return
 		}
-		_ = pathBackStack.Pop()
 		newPath := pathBackStack.Pop()
 		pathWithPrefix = filepath.Join(string(os.PathSeparator), newPath)
 		pathSegments = strings.Split(pathWithPrefix, string(filepath.Separator))
@@ -98,16 +108,18 @@ func (a *App) UpdateWorkingDirectory(event WorkingDirectoryEvent) {
 			pathWithPrefix = filepath.Join(string(os.PathSeparator), fullPath)
 		}
 	}
-	if pathBackStack.Peek() != pathWithPrefix {
-		pathBackStack.Push(pathWithPrefix)
+	if event.EventType != "BACK" && pathBackStack.Peek() != a.state.Path {
+		pathBackStack.Push(a.state.Path)
 	}
+	a.state.Segments = pathSegments
+	a.state.Path = pathWithPrefix
 	runtime.EventsEmit(a.ctx, "working_directory", WorkingDirectoryEvent{
 		Segments: pathSegments,
 		Path:     pathWithPrefix,
 	})
 }
 
-func (a *App) ListDirectory(directory string) []Item {
+func (a *App) ListDirectory(directory string, listFiles bool, includeChildren bool) []Item {
 	dir, err := os.Open(directory)
 	if err != nil {
 		return nil
@@ -127,10 +139,17 @@ func (a *App) ListDirectory(directory string) []Item {
 
 	var items []Item
 	for _, f := range files {
+		if !listFiles && !f.IsDir() {
+			continue
+		}
 		path := filepath.Join(directory, f.Name())
 		size := float64(f.Size())
+		children := make([]Item, 0)
 		if f.IsDir() || !f.Mode().IsRegular() {
 			size = 0
+		}
+		if f.IsDir() && includeChildren {
+			children = a.ListDirectory(path, listFiles, false)
 		}
 		items = append(items, Item{
 			Name:     f.Name(),
@@ -139,11 +158,43 @@ func (a *App) ListDirectory(directory string) []Item {
 			IsDir:    f.IsDir(),
 			Size:     size,
 			Modified: f.ModTime(),
-			Items:    nil,
+			Items:    children,
 		})
 	}
 
 	return items
+}
+
+func (a *App) LoadRoot() []Item {
+	var items []Item
+	for _, root := range a.getRoots() {
+		items = append(items, Item{
+			Name:  root,
+			Path:  root,
+			IsDir: true,
+			Size:  0,
+			Items: a.ListDirectory(root, false, false),
+		})
+	}
+	return items
+}
+
+func (a *App) getRoots() []string {
+	platform := runtime.Environment(a.ctx).Platform
+	if platform == "windows" {
+		var roots []string
+		for letter := 'A'; letter <= 'Z'; letter++ {
+			path := string(letter) + ":\\"
+			_, err := os.Stat(path)
+			if err == nil {
+				roots = append(roots, path)
+			}
+		}
+		return roots
+	}
+
+	// Unix-like systems: always "/"
+	return []string{"/"}
 }
 
 func (a *App) GetBackStack() []string {

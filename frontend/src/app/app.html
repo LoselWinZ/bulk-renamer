@@ -1,13 +1,13 @@
 <app-path></app-path>
 
-<p-splitter class="mb-8" [panelSizes]="[50, 50]" [style]="{'height': 'calc(100vh - 60px)'}" layout="vertical">
+<p-splitter class="mb-8" [panelSizes]="[50, 50]" (onResizeEnd)="resizeEnd($event)" [style]="{'height': 'calc(100vh - 60px)'}" layout="vertical">
   <ng-template #panel>
     <p-splitter [panelSizes]="[25, 75]" class="mb-8">
       <ng-template #panel>
-        <div class="flex items-center justify-center h-full">Folder Tree</div>
+        <app-filesystem-tree></app-filesystem-tree>
       </ng-template>
       <ng-template #panel>
-        <app-files></app-files>
+        <app-files [height]="topVerticalPanelSize"></app-files>
       </ng-template>
     </p-splitter>
   </ng-template>

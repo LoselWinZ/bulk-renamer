@@ -6,8 +6,10 @@ export function GetBackStack():Promise<Array<string>>;
 
 export function Greet(arg1:string):Promise<string>;
 
-export function ListDirectory(arg1:string):Promise<Array<main.Item>>;
+export function ListDirectory(arg1:string,arg2:boolean,arg3:boolean):Promise<Array<main.Item>>;
+
+export function LoadRoot():Promise<Array<main.Item>>;
 
 export function UpdateWorkingDirectory(arg1:main.WorkingDirectoryEvent):Promise<void>;
 
-export function WorkingDirectory():Promise<any>;
+export function WorkingDirectory():Promise<string>;

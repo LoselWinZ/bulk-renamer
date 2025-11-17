@@ -10,8 +10,12 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
-export function ListDirectory(arg1) {
-  return window['go']['main']['App']['ListDirectory'](arg1);
+export function ListDirectory(arg1, arg2, arg3) {
+  return window['go']['main']['App']['ListDirectory'](arg1, arg2, arg3);
+}
+
+export function LoadRoot() {
+  return window['go']['main']['App']['LoadRoot']();
 }
 
 export function UpdateWorkingDirectory(arg1) {

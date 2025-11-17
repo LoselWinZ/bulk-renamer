@@ -1,0 +1,10 @@
+<p-tree [value]="items()"
+        style="height: 90%"
+        selectionMode="single"
+        [virtualScroll]="true"
+        [virtualScrollItemSize]="30"
+        [(selection)]="selectedNode"
+        (onNodeExpand)="nodeExpand($event)"
+        (onNodeCollapse)="nodeCollapse($event)"
+        (onNodeSelect)="nodeSelect($event)"
+        (onNodeUnselect)="nodeUnselect($event)"/>

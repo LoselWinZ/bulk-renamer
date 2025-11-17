@@ -1,4 +1,4 @@
-import {Component, ElementRef, NgZone, QueryList, ViewChildren} from '@angular/core';
+import {Component, ElementRef, Input, NgZone, QueryList, ViewChildren} from '@angular/core';
 import {DatePipe, NgStyle} from "@angular/common";
 import {TableModule} from "primeng/table";
 import {UnitPipe} from "../pipe/unit-pipe";
@@ -30,13 +30,14 @@ export class Files {
   private lastMoveTime = 0;
 
   @ViewChildren('rowRef') rowElements!: QueryList<ElementRef<HTMLTableRowElement>>;
+  @Input() height!: number;
 
   constructor(private ngZone: NgZone) {
     EventsOn('working_directory', this.onDirectoryChange.bind(this));
   }
 
   onDirectoryChange(event: WorkingDirectoryEvent): void {
-    ListDirectory(event.path).then(items => {
+    ListDirectory(event.path, true, true).then(items => {
       this.ngZone.run(() => {
         this.items = items
       });
