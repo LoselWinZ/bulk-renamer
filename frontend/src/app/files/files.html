@@ -1,4 +1,4 @@
-<div style="user-select: none"
+<div style="user-select: none; height: 100%"
      (mousedown)="toggleSelection($event)"
      (mouseup)="toggleSelection($event)"
      (mousemove)="onMouseMove($event)">
@@ -54,7 +54,7 @@
           {{ item.name }}
         </td>
         <td>{{ item.newName }}</td>
-        <td>{{ item.items != undefined ? item.items.length + ' items' : (item.size | unit) }}</td>
+        <td>{{ item.items != undefined && item.isDir ? item.items.length + ' items' : (item.size | unit) }}</td>
         <td>{{ item.modified | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
       </tr>
     </ng-template>
