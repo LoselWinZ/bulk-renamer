@@ -1,0 +1,11 @@
+<div class="viewport" id="viewport"
+     (wheel)="onScroll($event)"
+     [style.transform]="'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')'"
+     [style.cursor]="dragging ? 'grabbing' : 'grab'"
+     (mousedown)="startPan($event)"
+     (mouseup)="stopPan($event)"
+     (mousemove)="onMouseMove($event)">
+  <div id="scene">
+    <span>test</span>
+  </div>
+</div>

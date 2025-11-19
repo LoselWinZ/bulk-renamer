@@ -2,10 +2,11 @@ import {Component, OnInit} from '@angular/core';
 import {ButtonModule} from 'primeng/button';
 import {WorkingDirectory} from '../../wailsjs/go/main/App';
 import {TableModule} from 'primeng/table';
-import {Path} from './path/path';
-import {Files} from './files/files';
+import {Path} from './components/path/path';
+import {Files} from './components/files/files';
 import {Splitter, SplitterResizeEndEvent} from 'primeng/splitter';
-import {FilesystemTree} from './filesystem-tree/filesystem-tree';
+import {FilesystemTree} from './components/filesystem-tree/filesystem-tree';
+import {NodeEditorComponent} from './components/node-editor/node-editor.component';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ import {FilesystemTree} from './filesystem-tree/filesystem-tree';
     Files,
     Splitter,
     FilesystemTree,
+    NodeEditorComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'

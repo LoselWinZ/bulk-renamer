@@ -1,11 +1,11 @@
 import {Component, ElementRef, HostListener, ViewChild} from '@angular/core';
 import {Breadcrumb, BreadcrumbItemClickEvent} from "primeng/breadcrumb";
 import {MenuItem, MenuItemCommandEvent} from 'primeng/api';
-import {EventsOn} from '../../../wailsjs/runtime';
-import {GetBackStack, UpdateWorkingDirectory} from '../../../wailsjs/go/main/App';
+import {EventsOn} from '../../../../wailsjs/runtime';
+import {GetBackStack, UpdateWorkingDirectory} from '../../../../wailsjs/go/main/App';
 import {InputText} from 'primeng/inputtext';
 import {FormsModule} from '@angular/forms';
-import {main} from '../../../wailsjs/go/models';
+import {main} from '../../../../wailsjs/go/models';
 import {Button} from 'primeng/button';
 import {ContextMenu} from 'primeng/contextmenu';
 import WorkingDirectoryEvent = main.WorkingDirectoryEvent;

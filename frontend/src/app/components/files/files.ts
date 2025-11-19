@@ -1,11 +1,11 @@
 import {Component, ElementRef, Input, NgZone, QueryList, ViewChildren} from '@angular/core';
 import {DatePipe, NgStyle} from "@angular/common";
 import {TableModule} from "primeng/table";
-import {UnitPipe} from "../pipe/unit-pipe";
-import {EventsOn, Position} from '../../../wailsjs/runtime';
-import {main} from '../../../wailsjs/go/models';
-import {ListDirectory, UpdateWorkingDirectory} from '../../../wailsjs/go/main/App';
-import {ClickDoubleDirective} from '../directive/click-double-directive';
+import {UnitPipe} from "../../pipe/unit-pipe";
+import {EventsOn, Position} from '../../../../wailsjs/runtime';
+import {main} from '../../../../wailsjs/go/models';
+import {ListDirectory, UpdateWorkingDirectory} from '../../../../wailsjs/go/main/App';
+import {ClickDoubleDirective} from '../../directive/click-double-directive';
 import Item = main.Item;
 import WorkingDirectoryEvent = main.WorkingDirectoryEvent;
 

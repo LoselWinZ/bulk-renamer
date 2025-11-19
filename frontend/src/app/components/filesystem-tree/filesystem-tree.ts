@@ -6,10 +6,10 @@ import {
   TreeNodeSelectEvent,
   TreeNodeUnSelectEvent, UITreeNode
 } from 'primeng/tree';
-import {main} from '../../../wailsjs/go/models';
+import {main} from '../../../../wailsjs/go/models';
 import Item = main.Item;
 import {TreeNode} from 'primeng/api';
-import {ListDirectory, LoadRoot, UpdateWorkingDirectory} from '../../../wailsjs/go/main/App';
+import {ListDirectory, LoadRoot, UpdateWorkingDirectory} from '../../../../wailsjs/go/main/App';
 import {node} from '@primeuix/themes/aura/tree';
 import WorkingDirectoryEvent = main.WorkingDirectoryEvent;
 
