@@ -1,24 +1,11 @@
-:host {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  inline-size: 100%;
-  block-size: 100%;
-  user-select: none;
-}
-
 .viewport {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 20000px;
+  height: 20000px;
+  transform-origin: 0 0;
   background-size: 30px 30px;
-  background-image: radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px);
-  overflow: scroll;
-  //height: 100vh;
-  //width: 100vw;
-  cursor: grab;
-
-  .scale {
-    height: 20000px;
-    width: 20000px;
-  }
+  background-image: radial-gradient(circle, lightgray 1px, rgba(0,0,0,0) 1px);
+  touch-action: none;
 }

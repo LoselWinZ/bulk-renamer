@@ -1,6 +1,7 @@
 <app-path></app-path>
 
-<p-splitter class="mb-8" [panelSizes]="[50, 50]" (onResizeEnd)="resizeEnd($event)" [style]="{'height': 'calc(100vh - 60px)'}" layout="vertical">
+<p-splitter class="mb-8" [panelSizes]="[50, 50]" (onResizeEnd)="resizeEnd($event)"
+            [style]="{'height': 'calc(100vh - 60px)'}" layout="vertical">
   <ng-template #panel>
     <p-splitter [panelSizes]="[25, 75]" class="mb-8">
       <ng-template #panel>
@@ -12,6 +13,8 @@
     </p-splitter>
   </ng-template>
   <ng-template #panel>
-    <app-node-editor></app-node-editor>
+    <div class="viewport-container" #viewportContainer>
+      <app-node-editor></app-node-editor>
+    </div>
   </ng-template>
 </p-splitter>
