@@ -23,7 +23,7 @@ export class NodeEditorComponent implements AfterViewInit {
   private minZoom: number = 1;
   private maxZoom: number = 2;
 
-  protected node = new EditorNode(100, 100, 500, 500);
+  protected node = new EditorNode(100, 100, 10000, 10000);
 
   ngAfterViewInit() {
     this.centerViewport();
@@ -56,15 +56,14 @@ export class NodeEditorComponent implements AfterViewInit {
     const viewportWidth = this.viewport.nativeElement.offsetWidth;
     const viewportHeight = this.viewport.nativeElement.offsetHeight;
 
-    // Compute visual bounds after scaling
-    const minPanX = -limit;
-    const maxPanX = limit - viewportWidth * zoomFactor;
-    const minPanY = -limit;
-    const maxPanY = limit - viewportHeight * zoomFactor;
+    const minPanX = -limit * zoomFactor;
+    const maxPanX = (limit - viewportWidth) * zoomFactor;
 
-    // Clamp
-    newX = Math.max(Math.min(newX, maxPanX), minPanX);
-    newY = Math.max(Math.min(newY, maxPanY), minPanY);
+    const minPanY = -limit * zoomFactor;
+    const maxPanY = (limit - viewportHeight) * zoomFactor;
+
+    newX = Math.max(minPanX, Math.min(newX, maxPanX));
+    newY = Math.max(minPanY, Math.min(newY, maxPanY));
 
     this.pan.set(new EditorPosition(newX, newY));
     this.last.x = event.clientX;
@@ -99,8 +98,8 @@ export class NodeEditorComponent implements AfterViewInit {
     const ratio = newZoom / oldZoom;
     const p = this.pan();
 
-    const newX = mouseX - (mouseX - p.x) * ratio;
-    const newY = mouseY - (mouseY - p.y) * ratio;
+    const newX = p.x - mouseX * (ratio - 1);
+    const newY = p.y - mouseY * (ratio - 1);
 
     this.pan.set(new EditorPosition(newX, newY));
     this.zoom.set(newZoom);
