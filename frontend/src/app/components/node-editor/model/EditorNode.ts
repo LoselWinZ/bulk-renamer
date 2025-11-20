@@ -1,13 +1,23 @@
-export class EditorNode {
-  height!: number;
-  width!: number;
-  top!: number;
-  left!: number;
+import {signal, WritableSignal} from '@angular/core';
+import {EditorPosition} from './EditorPosition';
 
-  constructor(height: number, width: number, top: number, left: number) {
+export class EditorNode {
+  readonly height: number;
+  readonly width: number;
+
+  readonly currentPosition: WritableSignal<EditorPosition>;
+  readonly previousPosition: WritableSignal<EditorPosition>;
+
+  constructor(height: number, width: number, currentPosition: EditorPosition) {
     this.height = height;
     this.width = width;
-    this.top = top;
-    this.left = left
+
+    this.currentPosition = signal(currentPosition);
+    this.previousPosition = signal(currentPosition);
+  }
+
+  moveTo(x: number, y: number) {
+    this.previousPosition.set(this.currentPosition());
+    this.currentPosition.set(new EditorPosition(x, y));
   }
 }

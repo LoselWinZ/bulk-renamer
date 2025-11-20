@@ -1,6 +1,6 @@
 <div class="viewport" #viewport
-     [style.transform]="'translate('+pan().x+'px,'+pan().y+'px) scale('+zoom()+')'"
-     [style.cursor]="isDragging ? 'grabbing' : 'grab'"
+     [style.transform]="'translate('+pan().x+'px,'+pan().y+'px) scale('+editorState.zoom()+')'"
+     [style.cursor]="editorState.isDragging() ? 'grabbing' : 'grab'"
      (pointerup)="onPanEnd($event)"
      (pointerdown)="onPanStart($event)"
      (pointermove)="onPan($event)"

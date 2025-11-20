@@ -1,8 +1,12 @@
 <div
   [style.height]="node.height + 'px'"
   [style.width]="node.width + 'px'"
-  [style.top]="node.top + 'px'"
-  [style.left]="node.left + 'px'"
-  (pointerdown)="onNodeDrag($event)"
+  [style.top]="node.currentPosition().y + 'px'"
+  [style.left]="node.currentPosition().x + 'px'"
+  [style.cursor]="editorState.isDragging() ? 'grabbing' : 'grab'"
+  (pointerdown)="onPointerNodeDown($event)"
+  (pointerup)="onPointerNodeUp($event)"
+  (pointerleave)="onPointerNodeUp($event)"
+  (pointermove)="onPointerNodeMove($event)"
   class="node">
 </div>

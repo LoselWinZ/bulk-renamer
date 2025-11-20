@@ -2,6 +2,7 @@ import {AfterViewInit, Component, ElementRef, signal, ViewChild} from '@angular/
 import {EditorPosition} from './model/EditorPosition';
 import {BasicNode} from './nodes/basic-node/basic-node';
 import {EditorNode} from './model/EditorNode';
+import {EditorState} from '../../service/editor-state';
 
 @Component({
   selector: 'app-node-editor',
@@ -14,16 +15,15 @@ import {EditorNode} from './model/EditorNode';
 export class NodeEditorComponent implements AfterViewInit {
   @ViewChild('viewport', {static: true}) viewport!: ElementRef<HTMLDivElement>;
   protected pan = signal(new EditorPosition(0, 0));         // current pan
-  protected zoom = signal(1);
-
-  private last = new EditorPosition(0, 0);
-  protected isDragging: boolean = false;
 
   private zoomFactor: number = 0.005;
   private minZoom: number = 1;
   private maxZoom: number = 2;
 
-  protected node = new EditorNode(100, 100, 10000, 10000);
+  protected node = new EditorNode(100, 100, new EditorPosition(10000, 10000));
+
+  constructor(protected editorState: EditorState) {
+  }
 
   ngAfterViewInit() {
     this.centerViewport();
@@ -44,13 +44,20 @@ export class NodeEditorComponent implements AfterViewInit {
   }
 
   onPan(event: PointerEvent) {
-    if (!this.isDragging) return;
-    const zoomFactor = this.zoom(); // current zoom
-    const dx = event.clientX - this.last.x;
-    const dy = event.clientY - this.last.y;
+    if (!this.editorState.isDragging()) return;
+    const zoomFactor = this.editorState.zoom(); // current zoom
+    const dx = event.clientX - this.editorState.last().x;
+    const dy = event.clientY - this.editorState.last().y;
 
     let newX = this.pan().x + dx;
     let newY = this.pan().y + dy;
+
+    if(this.editorState.selectedNode() != null) {
+      let newX = (this.editorState.selectedNode()!.previousPosition().x + dx) / zoomFactor;
+      let newY =  (this.editorState.selectedNode()!.previousPosition().y + dy) / zoomFactor;
+      this.editorState.selectedNode()!.currentPosition.set(new EditorPosition(newX, newY))
+      return;
+    }
 
     const limit = 15000;
     const viewportWidth = this.viewport.nativeElement.offsetWidth;
@@ -66,21 +73,20 @@ export class NodeEditorComponent implements AfterViewInit {
     newY = Math.max(minPanY, Math.min(newY, maxPanY));
 
     this.pan.set(new EditorPosition(newX, newY));
-    this.last.x = event.clientX;
-    this.last.y = event.clientY;
+
+    this.editorState.last.set(new EditorPosition(event.clientX, event.clientY));
   }
 
   onPanStart(event: PointerEvent) {
     event.preventDefault();
     if (event.buttons != 1) return;
 
-    this.isDragging = true;
-    this.last.x = event.clientX;
-    this.last.y = event.clientY;
+    this.editorState.isDragging.set(true);
+    this.editorState.last.set(new EditorPosition(event.clientX, event.clientY));
   }
 
   onPanEnd(event: PointerEvent) {
-    this.isDragging = false;
+    this.editorState.isDragging.set(false);
   }
 
   onZoom(event: WheelEvent) {
@@ -90,7 +96,7 @@ export class NodeEditorComponent implements AfterViewInit {
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
-    const oldZoom = this.zoom();
+    const oldZoom = this.editorState.zoom();
 
     const delta = -event.deltaY * this.zoomFactor;
     const newZoom = Math.min(Math.max(oldZoom + delta, this.minZoom), this.maxZoom);
@@ -102,6 +108,6 @@ export class NodeEditorComponent implements AfterViewInit {
     const newY = p.y - mouseY * (ratio - 1);
 
     this.pan.set(new EditorPosition(newX, newY));
-    this.zoom.set(newZoom);
+    this.editorState.zoom.set(newZoom);
   }
 }
