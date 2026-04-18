@@ -1,8 +1,19 @@
-<div style="user-select: none; height: 100%"
-     (mousedown)="toggleSelection($event)"
-     (mouseup)="toggleSelection($event)"
-     (mousemove)="onMouseMove($event)">
-  <p-table [value]="items"
+<div class="selection-container"
+     (mousedown)="onMouseDown($event)"
+     (mousemove)="onMouseMove($event)"
+     (window:mouseup)="onMouseUp()">
+
+  @if (isDragging) {
+    <div class="drag-selection-box"
+         [style.left.px]="selectionRect.left"
+         [style.top.px]="selectionRect.top"
+         [style.width.px]="selectionRect.width"
+         [style.height.px]="selectionRect.height">
+    </div>
+  }
+
+  <p-table #tableRef
+           [value]="items"
            [resizableColumns]="true"
            selectionMode="multiple"
            [metaKeySelection]="true"
@@ -42,7 +53,6 @@
     <ng-template #body let-item let-rowIndex=rowIndex>
       <tr [pSelectableRow]="item"
           [pSelectableRowIndex]="rowIndex"
-          (mouseenter)="onMouseEnter($event, item)"
           (click.double)="openDirectory(item)"
           #rowRef>
         <td>
@@ -60,15 +70,3 @@
     </ng-template>
   </p-table>
 </div>
-
-@if (selectionBox) {
-  <div
-    class="selection-box"
-    [ngStyle]="{
-    left: selectionBox.left + 'px',
-    top: selectionBox.top + 'px',
-    width: selectionBox.width + 'px',
-    height: selectionBox.height + 'px'
-  }"
-  ></div>
-}

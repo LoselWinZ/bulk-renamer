@@ -1,6 +1,6 @@
-import {Component, ElementRef, Input, NgZone, QueryList, ViewChildren} from '@angular/core';
+import {Component, ElementRef, inject, Input, NgZone, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {DatePipe, NgStyle} from "@angular/common";
-import {TableModule} from "primeng/table";
+import {Table, TableModule} from "primeng/table";
 import {UnitPipe} from "../../pipe/unit-pipe";
 import {EventsOn, Position} from '../../../../wailsjs/runtime';
 import {main} from '../../../../wailsjs/go/models';
@@ -8,6 +8,8 @@ import {ListDirectory, UpdateWorkingDirectory} from '../../../../wailsjs/go/main
 import {ClickDoubleDirective} from '../../directive/click-double-directive';
 import Item = main.Item;
 import WorkingDirectoryEvent = main.WorkingDirectoryEvent;
+import {State} from '../../service/state';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-files',
@@ -15,7 +17,6 @@ import WorkingDirectoryEvent = main.WorkingDirectoryEvent;
     DatePipe,
     TableModule,
     UnitPipe,
-    NgStyle,
     ClickDoubleDirective
   ],
   templateUrl: './files.html',
@@ -24,16 +25,31 @@ import WorkingDirectoryEvent = main.WorkingDirectoryEvent;
 export class Files {
   protected items: Item[] = []
   protected selectedItems: Item[] = [];
-  protected selectionBox: DOMRect = new DOMRect(0, 0, 0, 0);
-  protected isSelectionActive = false;
   private startPos: Position | null = null
-  private lastMoveTime = 0;
 
-  @ViewChildren('rowRef') rowElements!: QueryList<ElementRef<HTMLTableRowElement>>;
   @Input() height!: number;
+
+  @ViewChild('tableRef') table!: Table;
+  @ViewChildren('rowRef', {read: ElementRef}) rowElements!: QueryList<ElementRef>;
+
+  isDragging = false;
+  selectionRect = {left: 0, top: 0, width: 0, height: 0};
+
+  private state = inject(State)
 
   constructor(private ngZone: NgZone) {
     EventsOn('working_directory', this.onDirectoryChange.bind(this));
+
+    this.state.selectAll$
+      .pipe(takeUntilDestroyed())
+      .subscribe(e => {
+        if(e.target == null || (e.target as HTMLElement).className.includes('p-datatable')) return;
+        if (this.selectedItems.length === this.items.length) {
+          this.selectedItems = [];
+        } else {
+          this.selectedItems = this.items;
+        }
+      })
   }
 
   onDirectoryChange(event: WorkingDirectoryEvent): void {
@@ -44,77 +60,97 @@ export class Files {
     });
   }
 
-  onMouseEnter(_: MouseEvent, item: Item) {
-    if (this.isSelectionActive) {
-      if (!this.selectedItems.some(s => s.name === item.name)) {
-        this.selectedItems = [...this.selectedItems, item];
-      }
+  private animationId: number | null = null;
+  private currentMousePos = {x: 0, y: 0};
+
+  onMouseDown(event: MouseEvent) {
+    if (event.button == 2 || (event.target as HTMLElement).closest('.p-sortable-column, button, i')) return;
+
+    this.isDragging = true;
+    this.startPos = {x: event.clientX, y: event.clientY};
+    this.currentMousePos = {x: event.clientX, y: event.clientY};
+
+    if (!event.ctrlKey && !event.metaKey) {
+      this.selectedItems = [];
     }
+
+    // Start the calculation loop
+    this.startSelectionLoop();
   }
 
-  protected toggleSelection(event: MouseEvent) {
-    if (event.buttons == 1) {
-      this.startPos = {x: event.clientX, y: event.clientY}
-      this.selectionBox = new DOMRect(
-        event.clientX,
-        event.clientY,
-        0,
-        0
-      )
-
-      this.selectedItems = []
-    } else {
-      this.startPos = null;
-      this.selectionBox = new DOMRect();
-    }
-    this.isSelectionActive = event.buttons == 1;
+  onMouseMove(event: MouseEvent) {
+    if (!this.isDragging) return;
+    this.currentMousePos = {x: event.clientX, y: event.clientY};
   }
 
-  protected onMouseMove(event: MouseEvent) {
-    if (!this.startPos) return;
-    const now = performance.now();
-    if (now - this.lastMoveTime < 16) return; // ~60 fps throttle
-    this.lastMoveTime = now;
+  private startSelectionLoop() {
+    const loop = () => {
+      if (!this.isDragging) return;
 
-    this.updateSelectionBox(event);
-    this.updateSelectedItemsFromBox()
+      this.updateRect();
+      this.calculateSelection();
+      this.handleAutoScroll();
+
+      this.animationId = requestAnimationFrame(loop);
+    };
+    this.animationId = requestAnimationFrame(loop);
   }
 
-  private updateSelectionBox(event: MouseEvent) {
-    if (!this.startPos) return;
-    const x = Math.min(event.clientX, this.startPos.x);
-    const y = Math.min(event.clientY, this.startPos.y);
-    const width = Math.abs(event.clientX - this.startPos.x);
-    const height = Math.abs(event.clientY - this.startPos.y);
+  private updateRect() {
+    if (this.startPos == null) return;
 
-    this.selectionBox = new DOMRect(x, y, width, height);
+    this.selectionRect = {
+      left: Math.min(this.startPos.x, this.currentMousePos.x),
+      top: Math.min(this.startPos.y, this.currentMousePos.y),
+      width: Math.abs(this.currentMousePos.x - this.startPos.x),
+      height: Math.abs(this.currentMousePos.y - this.startPos.y)
+    };
   }
 
-  private updateSelectedItemsFromBox() {
-    if (!this.isSelectionActive) return
+  private calculateSelection() {
+    const dragBox = this.selectionRect;
+    const newSelection: any[] = [];
 
-    const box = this.selectionBox;
-    const rowEls = this.rowElements.toArray();
+    this.rowElements.forEach((rowEl, index) => {
+      const rowBox = rowEl.nativeElement.getBoundingClientRect();
 
-    const newSelected: Item[] = [];
+      const isOverlapping = !(
+        rowBox.right < dragBox.left ||
+        rowBox.left > dragBox.left + dragBox.width ||
+        rowBox.bottom < dragBox.top ||
+        rowBox.top > dragBox.top + dragBox.height
+      );
 
-    rowEls.forEach((row: any, i: number) => {
-      const rect = row.nativeElement.getBoundingClientRect();
-
-      // simple rectangle intersection
-      const intersects =
-        rect.left < box.left + box.width &&
-        rect.right > box.left &&
-        rect.top < box.top + box.height &&
-        rect.bottom > box.top;
-
-      if (intersects) {
-        newSelected.push(this.items[i]);
+      if (isOverlapping) {
+        newSelection.push(this.items[index]);
       }
     });
 
-    this.selectedItems = newSelected;
+    // Only update if selection actually changed to prevent flickering
+    if (JSON.stringify(this.selectedItems) !== JSON.stringify(newSelection)) {
+      this.selectedItems = [...newSelection];
+    }
+  }
 
+  private handleAutoScroll() {
+    const viewport = this.table.el.nativeElement.querySelector('.p-datatable-viewport');
+    if (!viewport) return;
+
+    const rect = viewport.getBoundingClientRect();
+    const speed = 10;
+    const zone = 50; // pixels from edge
+
+    if (this.currentMousePos.y > rect.bottom - zone) {
+      viewport.scrollTop += speed;
+    } else if (this.currentMousePos.y < rect.top + zone) {
+      viewport.scrollTop -= speed;
+    }
+  }
+
+  onMouseUp() {
+    this.isDragging = false;
+    if (this.animationId) cancelAnimationFrame(this.animationId);
+    this.selectionRect = {left: 0, top: 0, width: 0, height: 0};
   }
 
   protected openDirectory(item: Item) {
