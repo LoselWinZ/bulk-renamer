@@ -1,21 +1,14 @@
-<app-path></app-path>
+<div id="main-layout">
+  <app-navigation-header></app-navigation-header>
+  <aside>
+    <app-file-tree-sidebar></app-file-tree-sidebar>
+  </aside>
+  <div>
+    <app-file-list></app-file-list>
+  </div>
+  <footer>
 
-<p-splitter class="mb-8" [panelSizes]="[50, 50]" (onResizeEnd)="resizeEnd($event)"
-            [style]="{'height': 'calc(100vh - 60px)'}" layout="vertical">
-  <ng-template #panel>
-    <p-splitter [panelSizes]="[25, 75]" class="mb-8">
-      <ng-template #panel>
-        <app-filesystem-tree></app-filesystem-tree>
-      </ng-template>
-      <ng-template #panel>
-        <app-files [height]="topVerticalPanelSize"></app-files>
-      </ng-template>
-    </p-splitter>
-  </ng-template>
-  <ng-template #panel>
-    <div class="viewport-container" #viewportContainer>
-<!--      <app-node-editor></app-node-editor>-->
-      <app-operations></app-operations>
-    </div>
-  </ng-template>
-</p-splitter>
+  </footer>
+</div>
+
+<router-outlet></router-outlet>
